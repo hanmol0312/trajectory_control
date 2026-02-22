@@ -1,5 +1,6 @@
 #include "trajectory_control/ppt_controller.hpp"
 #include <cmath>
+#include <algorithm>
 
 PurePursuitController::PurePursuitController(
     double max_velocity,
@@ -73,10 +74,33 @@ void PurePursuitController::computeCommand(
     // ---------------------------------------
     // Control Law (Time-Parameterized Tracking)
     // ---------------------------------------
-    double v_ref = max_velocity_;  // or compute from trajectory
-    v = v_ref + k1_ * x_r;
-    omega = k2_ * y_r + k3_ * theta_error;
+    // double v_ref = max_velocity_;  // or compute from trajectory
+    // v = v_ref + k1_ * x_r;
+    // omega = k2_ * y_r + k3_ * theta_error;
+    // Desired feedforward
+    double v_d = trajectory_[target_index].v;
+    double omega_d = trajectory_[target_index].omega;
 
+    // Optional curvature-based slowdown
+    double curvature = (fabs(v_d) > 1e-6) ? omega_d / v_d : 0.0;
+    double beta = 2.0;  // tune this
+    v_d = v_d / (1.0 + beta * fabs(curvature));
+    double kappa = curvature;
+
+    double v_max = 1.0;          // straight speed
+    double kappa_threshold = 0.5;
+
+    double v_desired;
+
+    if (std::abs(kappa) < kappa_threshold)
+        v_desired = v_max;
+    else
+        v_desired = v_max / (1.0 + 3.0 * std::abs(kappa));
+
+    omega_d = v_desired * kappa;
+    // Nonlinear tracking law
+    v = v_d * std::cos(theta_error) + k1_ * x_r;
+    omega = omega_d + k2_ * v_d * y_r + k3_ * theta_error;
     // ---------------------------------------
     // Velocity Saturation
     // ---------------------------------------
@@ -89,4 +113,16 @@ void PurePursuitController::computeCommand(
         omega = omega_max_;
     if (omega < -omega_max_)
         omega = -omega_max_;
+        double dt = 0.02;  // use real dt if possible
+
+    v = std::clamp(v,
+                v_prev_ - max_acc_ * dt,
+                v_prev_ + max_acc_ * dt);
+
+    omega = std::clamp(omega,
+                    omega_prev_ - max_alpha_ * dt,
+                    omega_prev_ + max_alpha_ * dt);
+
+    v_prev_ = v;
+    omega_prev_ = omega;
 }

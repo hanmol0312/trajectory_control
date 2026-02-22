@@ -9,6 +9,7 @@ public:
 
     double calc(double t) const;
     double calc_derivative(double t) const;
+    double calc_second_derivative(double t) const;
 
 private:
     int find_segment(double t) const;
@@ -29,6 +30,9 @@ public:
 
     double calc_dx(double s);
     double calc_dy(double s);
+
+    double calc_ddx(double s);
+    double calc_ddy(double s);
 
     double get_length() const;
 

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "trajectory.hpp"
+#include <bits/stdc++.h>
 
 class PurePursuitController
 {
@@ -31,6 +32,9 @@ private:
     double k1_;   // longitudinal
     double k2_;   // lateral
     double k3_;   // heading
-
+    double v_prev_ = 0.0;
+    double omega_prev_ = 0.0;
+    double max_acc_ = 0.5;       // m/s^2
+    double max_alpha_ = 1.5;     // rad/s^2
     std::vector<TrajPoint> trajectory_;
 };

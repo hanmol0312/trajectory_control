@@ -1,28 +1,40 @@
-    #include "trajectory_control/trajectory.hpp"
-    #include <cmath>
+#include "trajectory_control/trajectory.hpp"
 
-    std::vector<TrajPoint> TrajectoryGenerator::generate(
-        Spline2D& spline,
-        double velocity,
-        double ds)
+std::vector<TrajPoint> TrajectoryGenerator::generate(
+    Spline2D& spline,
+    double velocity,
+    double ds)
+{
+    std::vector<TrajPoint> traj;
+
+    double length = spline.get_length();
+
+    for (double s = 0.0; s <= length; s += ds)
     {
-        std::vector<TrajPoint> traj;
+        double x = spline.calc_x(s);
+        double y = spline.calc_y(s);
 
-        double length = spline.get_length();
+        double dx = spline.calc_dx(s);
+        double dy = spline.calc_dy(s);
 
-        for (double s = 0.0; s <= length; s += ds)
-        {
-            double x = spline.calc_x(s);        // gives x(s)
-            double y = spline.calc_y(s);        // gives y(s)
+        double ddx = spline.calc_ddx(s);
+        double ddy = spline.calc_ddy(s);
 
-            double dx = spline.calc_dx(s);      // detivative of x(s)
-            double dy = spline.calc_dy(s);      //derivative of y(s)
+        double theta = std::atan2(dy, dx);
 
-            double theta = std::atan2(dy, dx);
-            double t = s / velocity;
+        double denom = std::pow(dx*dx + dy*dy, 1.5);
+        double curvature = 0.0;
 
-            traj.push_back({x, y, theta, t});  // trajectory profile
-        }
+        if (denom > 1e-6)
+            curvature = (dx * ddy - dy * ddx) / denom;
 
-        return traj;
+        double v = velocity;
+        double omega = v * curvature;
+
+        double t = s / velocity;
+
+        traj.push_back({x, y, theta, t, v, omega});
     }
+
+    return traj;
+}

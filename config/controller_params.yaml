@@ -11,9 +11,9 @@ trajectory_controller:
     k_theta: 0.8
     omega_max: 1.8
 
-    k1: 0.8
-    k2: 4.5
-    k3: 2.2
+    k1: 1.0
+    k2: 6.0
+    k3: 4.0
     # waypoints: [                                        #straight line
     #   0.0, 0.0,
     #   5.0, 0.0

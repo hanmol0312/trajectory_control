@@ -83,6 +83,12 @@ double CubicSpline1D::calc_derivative(double t) const
     return b_[i] + 2.0 * c_[i] * dx + 3.0 * d_[i] * dx * dx;
 }   
 
+double CubicSpline1D::calc_second_derivative(double t) const
+{
+    int i = find_segment(t);
+    double dx = t - x_[i];
+    return 2.0 * c_[i] + 6.0 * d_[i] * dx;
+}
 
 // ------------------- Spline2D ---------------------
 
@@ -107,6 +113,15 @@ Spline2D::Spline2D(const std::vector<double>& x,
 
     sx_.set_points(s_, x);             // generates 1 D splines in x 
     sy_.set_points(s_, y);             // generates 1 D splines in y
+}
+double Spline2D::calc_ddx(double s)
+{
+    return sx_.calc_second_derivative(s);
+}
+
+double Spline2D::calc_ddy(double s)
+{
+    return sy_.calc_second_derivative(s);
 }
 
 double Spline2D::calc_x(double s) { return sx_.calc(s); }        
